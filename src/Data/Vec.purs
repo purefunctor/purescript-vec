@@ -12,7 +12,7 @@ module Data.Vec
 
 import Prelude
 
-import Data.Foldable (class Foldable)
+import Data.Foldable (class Foldable, foldMapDefaultL, foldrDefault)
 import Data.Foldable as Foldable
 import Data.List (List(..))
 import Data.List as List
@@ -33,6 +33,14 @@ instance Ord a => Ord (Vec n a) where
 
 instance (Show a, IsReflectable n Int) => Show (Vec n a) where
   show (UnsafeMkVec n xs) = "(fromFoldable (Proxy :: Proxy " <> show (reflectType n) <> ") " <> show xs <> ")"
+
+instance Functor (Vec n) where
+  map f (UnsafeMkVec n xs) = UnsafeMkVec n (map f xs)
+
+instance Foldable (Vec n) where
+  foldl f x (UnsafeMkVec _ xs) = List.foldl f x xs
+  foldr f xs x = foldrDefault f xs x
+  foldMap f xs = foldMapDefaultL f xs
 
 empty :: forall a. Vec 0 a
 empty = UnsafeMkVec (Proxy :: _ 0) Nil
