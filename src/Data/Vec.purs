@@ -25,6 +25,15 @@ import Type.Prelude (Proxy(..))
 data Vec :: Int -> Type -> Type
 data Vec n a = UnsafeMkVec (Proxy n) (List a)
 
+instance Eq a => Eq (Vec n a) where
+  eq (UnsafeMkVec _ xs) (UnsafeMkVec _ ys) = eq xs ys
+
+instance Ord a => Ord (Vec n a) where
+  compare (UnsafeMkVec _ xs) (UnsafeMkVec _ ys) = compare xs ys
+
+instance (Show a, IsReflectable n Int) => Show (Vec n a) where
+  show (UnsafeMkVec n xs) = "(fromFoldable (Proxy :: Proxy " <> show (reflectType n) <> ") " <> show xs <> ")"
+
 empty :: forall a. Vec 0 a
 empty = UnsafeMkVec (Proxy :: _ 0) Nil
 
