@@ -22,34 +22,34 @@ import Prim.Int (class Add, class Compare)
 import Prim.Ordering (GT)
 import Type.Prelude (Proxy(..))
 
-data Vec :: Int -> Type -> Type
-data Vec n a = UnsafeMkVec (Proxy n) (List a)
+newtype Vec :: Int -> Type -> Type
+newtype Vec n a = UnsafeMkVec (List a)
 
 instance Eq a => Eq (Vec n a) where
-  eq (UnsafeMkVec _ xs) (UnsafeMkVec _ ys) = eq xs ys
+  eq (UnsafeMkVec xs) (UnsafeMkVec ys) = eq xs ys
 
 instance Ord a => Ord (Vec n a) where
-  compare (UnsafeMkVec _ xs) (UnsafeMkVec _ ys) = compare xs ys
+  compare (UnsafeMkVec xs) (UnsafeMkVec ys) = compare xs ys
 
 instance (Show a, IsReflectable n Int) => Show (Vec n a) where
-  show (UnsafeMkVec n xs) = "(fromFoldable (Proxy :: Proxy " <> show (reflectType n) <> ") " <> show xs <> ")"
+  show (UnsafeMkVec xs) = "(fromFoldable (Proxy :: Proxy " <> show (reflectType (Proxy :: Proxy n)) <> ") " <> show xs <> ")"
 
 instance Functor (Vec n) where
-  map f (UnsafeMkVec n xs) = UnsafeMkVec n (map f xs)
+  map f (UnsafeMkVec xs) = UnsafeMkVec (map f xs)
 
 instance Foldable (Vec n) where
-  foldl f x (UnsafeMkVec _ xs) = List.foldl f x xs
+  foldl f x (UnsafeMkVec xs) = List.foldl f x xs
   foldr f xs x = foldrDefault f xs x
   foldMap f xs = foldMapDefaultL f xs
 
 empty :: forall a. Vec 0 a
-empty = UnsafeMkVec (Proxy :: _ 0) Nil
+empty = UnsafeMkVec Nil
 
 singleton :: forall a. a -> Vec 1 a
-singleton a = UnsafeMkVec (Proxy :: _ 1) (Cons a Nil)
+singleton a = UnsafeMkVec (Cons a Nil)
 
 cons :: forall a n m. Add n 1 m => a -> Vec n a -> Vec m a
-cons x (UnsafeMkVec _ xs) = UnsafeMkVec (Proxy :: _ m) (Cons x xs)
+cons x (UnsafeMkVec xs) = UnsafeMkVec (Cons x xs)
 
 infixr 6 cons as :
 
@@ -60,7 +60,7 @@ unsafeFromFoldable
   => Proxy n
   -> f a
   -> Vec n a
-unsafeFromFoldable n xs = UnsafeMkVec n (List.fromFoldable xs)
+unsafeFromFoldable _ xs = UnsafeMkVec (List.fromFoldable xs)
 
 fromFoldable
   :: forall a f n
@@ -72,7 +72,7 @@ fromFoldable
   -> Maybe (Vec n a)
 fromFoldable n xs
   | Foldable.length xs == reflectType n =
-      Just $ UnsafeMkVec n (List.fromFoldable xs)
+      Just $ UnsafeMkVec (List.fromFoldable xs)
   | otherwise =
       Nothing
 
